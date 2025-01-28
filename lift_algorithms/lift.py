@@ -6,6 +6,7 @@ class Action(Enum):
     move_up = 1
     move_down = 2
     open_doors = 3
+    # todo add wait
 
 
 class LiftAction:

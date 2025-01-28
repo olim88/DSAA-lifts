@@ -67,5 +67,7 @@ if __name__ == '__main__':
             logging.info(f"took on: {len(completed_action.add)}. dropped off: {len(completed_action.remove)}.")
             logging.info(f"there are now {len(lift_occupants)} users in the lift")
 
+        logging.info(f"current time: {current_time}. users left: {total_users - len(finished_users)}")
+
     # save the times to output
     simulation_handler.save_output(finished_users)

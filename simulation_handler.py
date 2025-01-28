@@ -21,7 +21,7 @@ class User:
         return [self.start_floor, self.end_floor, self.start_time]
 
     def get_output_data(self) -> List[int]:
-        return [self.start_floor, self.start_traveling_time, self.finish_time]
+        return [self.start_time, self.start_traveling_time, self.finish_time]
 
     def set_user_start_traveling(self, current_time: int):
         self.start_traveling_time = current_time

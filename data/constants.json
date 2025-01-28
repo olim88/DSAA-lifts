@@ -1,0 +1,10 @@
+{
+  "capacity": 5,
+  "floors": 10,
+  "time between floors": 2,
+  "first pickup time": 5,
+  "extra pickup time": 1,
+  "start floor": 0,
+  "algorithm": "LOOK"
+
+}

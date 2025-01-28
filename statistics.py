@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_times(data):
-    plt.boxplot(data, tick_labels=["Waiting time", "In lift time", "Total time"])
+    plt.boxplot(data, tick_labels=["Waiting for lift", "In lift", "Total"])
 
     # Add labels and title
     plt.title(f"Waiting times")

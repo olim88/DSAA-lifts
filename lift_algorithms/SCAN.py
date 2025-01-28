@@ -30,9 +30,15 @@ class ScanAlgorithm(BaseLiftAlgorithm):
                 pick_up.append(user)
 
         # based on if lift can do somthing at the floor decide what to do next
-        if len(pick_up) > 0 or len(drop_off) > 0:  # todo do nothing if there is nobody waiting
+        if len(pick_up) > 0 or len(drop_off) > 0:
             return LiftAction(Action.open_doors, pick_up, drop_off)
-        elif self.direction:
+
+        #make sure there is a person to move to
+        if all(len(floor) == 0 for floor in floors) and len(lift_occupants) == 0:
+            return LiftAction(Action.wait, [], [])
+
+        #otherwise move
+        if self.direction:
             # switch directions if at the top
             if current_floor == len(floors) - 1:
                 self.direction = False

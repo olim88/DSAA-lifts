@@ -40,7 +40,9 @@ if __name__ == '__main__':
         completed_action: LiftAction = algorithm.calculate(lift_occupants, floors, current_time, current_floor)
 
         # apply changes from action
-        if completed_action.action == Action.move_up:
+        if completed_action.action == Action.wait:
+            current_time += 1
+        elif completed_action.action == Action.move_up:
             current_floor += 1
             current_time += constants["time between floors"]
             logging.info(f"Going up to floor: {current_floor}")

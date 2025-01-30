@@ -7,8 +7,7 @@ from simulation_handler import User
 class ScanAlgorithm(BaseLiftAlgorithm):
     direction: bool  # true == up
 
-    def __init__(self, capacity: int):
-        super().__init__(capacity)
+    def __init__(self):
         self.direction = True
         self.name = "SCAN"
 

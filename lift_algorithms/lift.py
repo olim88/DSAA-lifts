@@ -30,7 +30,8 @@ def get_can_drop_off(current_floor: int, lift_occupants: List[User]) -> List[Use
 class BaseLiftAlgorithm:
     capacity: int
     name: str
-    def __init__(self, capacity: int):
+
+    def set_capacity(self, capacity: int):
         self.capacity = capacity
 
     def calculate(self, lift_occupants: List[User], floors: List[List[User]], current_time: int, current_floor: int) -> LiftAction:

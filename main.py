@@ -24,8 +24,6 @@ def get_sim_id() -> str | None:
 if __name__ == '__main__':
     # enables  logging
     logging.basicConfig(level=logging.ERROR)
-    with open("data/constants.json", "r") as f:
-        constants = json.load(f)
     # give users simple cli to control what to do
     while True:
         user_input = input("""
@@ -50,9 +48,9 @@ What do you want to do?:
             chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
             if chosen_algorithm == "LOOK":
-                algorithm: BaseLiftAlgorithm = LookAlgorithm(constants["capacity"])
+                algorithm: BaseLiftAlgorithm = LookAlgorithm()
             elif chosen_algorithm == "SCAN":
-                algorithm: BaseLiftAlgorithm = ScanAlgorithm(constants["capacity"])
+                algorithm: BaseLiftAlgorithm = ScanAlgorithm()
             else:
                 print("Invalid algorithm")
                 continue

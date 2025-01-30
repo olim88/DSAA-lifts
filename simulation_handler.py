@@ -8,10 +8,10 @@ from lift_algorithms.lift import BaseLiftAlgorithm, LiftAction, Action
 from user import User
 
 
-def save_simulation(values: List[User], total_floors: int):
+def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
     """Saves to the simulation file"""
     # create dictionary to save
-    output = {"floors": total_floors}
+    output = {"floors": total_floors, "lift capacity": lift_capacity}
     for value in values:
         output[value.id] = value.get_simulation_data()
     # write to file
@@ -20,20 +20,24 @@ def save_simulation(values: List[User], total_floors: int):
         f.write(json.dumps(output, indent=4))
 
 
-def open_simulation(simulation_id: int) -> Tuple[List[User], int]:
+def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
     """loads the simulation json into a list of users. And the number of floors the simulation has"""
     users = []
     floors = 0
+    lift_capacity = 0
     with open(f"simulations/simulation_{simulation_id}.json", "r") as f:
         json_data = json.load(f)
     for key in json_data:
         if key == "floors":
             floors = json_data[key]
             continue
+        elif key == "lift capacity":
+            lift_capacity = json_data[key]
+            continue
         if key.isdigit():
             users.append(User(key, json_data[key][0], json_data[key][1], json_data[key][2]))
 
-    return users, floors
+    return users, floors, lift_capacity
 
 
 def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgorithm):
@@ -68,8 +72,9 @@ def create_simulation_from_inputs():
     floors = int(input("Enter the number of floors: "))
     user_count = int(input("Enter the number of users: "))
     max_start_time = int(input("Enter the maximum start time: "))
+    list_capacity = int(input("Enter the capacity of the simulation: "))
     simulation = create_simulation(floors, user_count, max_start_time)
-    save_simulation(simulation, floors)
+    save_simulation(simulation, floors, list_capacity)
     print("Simulation saved")
 
 
@@ -78,7 +83,8 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
     with open("data/constants.json", "r") as f:
         constants = json.load(f)
     # set up values
-    (future_users, total_floors) = open_simulation(simulation_id)
+    (future_users, total_floors, capacity) = open_simulation(simulation_id)
+    algorithm.set_capacity(capacity)
     total_users = len(future_users)
     finished_users: List[User] = []
     current_time = 0

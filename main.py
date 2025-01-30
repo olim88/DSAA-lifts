@@ -1,75 +1,82 @@
 import json
 import logging
+import os
+import uuid
 from typing import List
 import simulation_handler
+import statistics
+from lift_algorithms.LOOK import LookAlgorithm
 from lift_algorithms.lift import BaseLiftAlgorithm, LiftAction, Action
 
 from lift_algorithms.SCAN import ScanAlgorithm
 
 
+def get_sim_id() -> str | None:
+    ids = [sim.split("_")[1].split(".")[0] for sim in os.listdir("simulations")]
+    print("Simulation IDs: {}".format(", ".join(ids)))
+    chosen_id = input(f"Choose a simulation id:")
+    if chosen_id not in ids:
+        print("Invalid ID")
+        return None
+    return chosen_id
 
-# Press the green button in the gutter to run the script.
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG) # todo this enables debug logging
-    # load the constants
-    with open("data/constants.json", "r") as f:  # todo have this as part of a simulation file
-        constants = json.load(f)
-    # set up values
-    future_users: List[simulation_handler.User] = simulation_handler.open_simulation()
-    total_users = len(future_users)
-    finished_users: List[simulation_handler.User] = []
-    current_time = 0
-    current_floor = constants["start floor"]
-    lift_occupants = []
-    floors = [[] for floor in range(constants["floors"])]
-    # todo choose which algorithm to use
-    algorithm: BaseLiftAlgorithm = ScanAlgorithm(constants["capacity"])
+    # enables  logging
+    logging.basicConfig(level=logging.INFO)
 
-    # run lift loop until simulation finished
+    # give users simple cli to control what to do
     while True:
-        # check to see if the lift has finished
-        if len(finished_users) == total_users:
+        user_input = input("""
+        What do you want to do?:
+            0 - quit
+            1 - create simulation
+            2 - run simulation
+            3 - view statistics
+            4 - toggle logging
+        """)
+
+        if user_input == '0':
             break
-        # see if any new lift users have arrived since the last action
-        for user in future_users:
-            if user.start_time <= current_time:
-                floors[user.start_floor].append(user)
-                future_users.remove(user)
+        elif user_input == '1':
+            simulation_handler.create_simulation_from_inputs()
+        elif user_input == '2':
+            # ask the user for id
+            chosen_id = get_sim_id()
+            if chosen_id is None:
+                continue
+            # ask for algorithm
+            chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
-        # send state to lift algorithm
-        completed_action: LiftAction = algorithm.calculate(lift_occupants, floors, current_time, current_floor)
+            if chosen_algorithm == "LOOK":
+                algorithm: BaseLiftAlgorithm = LookAlgorithm(5)  # todo config for 5
+            elif chosen_algorithm == "SCAN":
+                algorithm: BaseLiftAlgorithm = ScanAlgorithm(5)
+            else:
+                print("Invalid algorithm")
+                continue
+            # run correct algorithm
+            simulation_output = simulation_handler.run_simulation(algorithm, int(chosen_id))
 
-        # apply changes from action
-        if completed_action.action == Action.wait:
-            current_time += 1
-        elif completed_action.action == Action.move_up:
-            current_floor += 1
-            current_time += constants["time between floors"]
-            logging.info(f"Going up to floor: {current_floor}")
-        elif completed_action.action == Action.move_down:
-            current_floor -= 1
-            current_time += constants["time between floors"]
-            logging.info(f"Going down to floor: {current_floor}")
-        elif completed_action.action == Action.open_doors:
-            #edit user timings
-            for user in completed_action.add:
-                user.set_user_start_traveling(current_time)
-            for user in completed_action.remove:
-                user.set_user_end_traveling(current_time)
-            #remove from queue
-            floors[current_floor] = [user for user in floors[current_floor] if user not in completed_action.add]
-            #change lift occupants
-            lift_occupants.extend(completed_action.add)
-            lift_occupants = [user for user in lift_occupants if user not in completed_action.remove]
-            #add to output
-            finished_users.extend(completed_action.remove)
-            #calculate time taken
-            people_change = len(completed_action.add) + len(completed_action.remove) #todo if sombody comes during this time only add extra person time
-            current_time += constants["first pickup time"] + constants["extra pickup time"] * (people_change - 1)
-            logging.info(f"took on: {len(completed_action.add)}. dropped off: {len(completed_action.remove)}.")
-            logging.info(f"there are now {len(lift_occupants)} users in the lift")
-
-        logging.info(f"current time: {current_time}. users left: {total_users - len(finished_users)}")
-
-    # save the times to output
-    simulation_handler.save_output(finished_users)
+            simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)  # todo config for 10
+        elif user_input == '3':
+            # ask the user for id
+            chosen_id = get_sim_id()
+            if chosen_id is None:
+                continue
+            # get stats on that id
+            try:
+                statistics.get_statistics(int(chosen_id), "SCAN")
+            except Exception as e:
+                print (e)
+            try:
+                statistics.get_statistics(int(chosen_id), "LOOK")
+            except Exception as e:
+                print(e)
+        elif user_input == '4':
+            if logging.getLogger().isEnabledFor(logging.INFO):
+                logging.getLogger().setLevel(logging.ERROR)
+                print("logging disabled")
+            else:
+                logging.getLogger().setLevel(logging.INFO)
+                print("logging enabled")

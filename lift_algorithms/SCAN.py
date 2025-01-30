@@ -10,6 +10,7 @@ class ScanAlgorithm(BaseLiftAlgorithm):
     def __init__(self, capacity: int):
         super().__init__(capacity)
         self.direction = True
+        self.name = "SCAN"
 
     def calculate(self, lift_occupants: List[User], floors: List[List[User]], current_time: int,
                   current_floor: int) -> LiftAction:

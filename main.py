@@ -23,18 +23,19 @@ def get_sim_id() -> str | None:
 
 if __name__ == '__main__':
     # enables  logging
-    logging.basicConfig(level=logging.INFO)
-
+    logging.basicConfig(level=logging.ERROR)
+    with open("data/constants.json", "r") as f:
+        constants = json.load(f)
     # give users simple cli to control what to do
     while True:
         user_input = input("""
-        What do you want to do?:
-            0 - quit
-            1 - create simulation
-            2 - run simulation
-            3 - view statistics
-            4 - toggle logging
-        """)
+What do you want to do?:
+    0 - quit
+    1 - create simulation
+    2 - run simulation
+    3 - view statistics
+    4 - toggle logging
+""")
 
         if user_input == '0':
             break
@@ -49,16 +50,16 @@ if __name__ == '__main__':
             chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
             if chosen_algorithm == "LOOK":
-                algorithm: BaseLiftAlgorithm = LookAlgorithm(5)  # todo config for 5
+                algorithm: BaseLiftAlgorithm = LookAlgorithm(constants["capacity"])
             elif chosen_algorithm == "SCAN":
-                algorithm: BaseLiftAlgorithm = ScanAlgorithm(5)
+                algorithm: BaseLiftAlgorithm = ScanAlgorithm(constants["capacity"])
             else:
                 print("Invalid algorithm")
                 continue
             # run correct algorithm
             simulation_output = simulation_handler.run_simulation(algorithm, int(chosen_id))
 
-            simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)  # todo config for 10
+            simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)
         elif user_input == '3':
             # ask the user for id
             chosen_id = get_sim_id()

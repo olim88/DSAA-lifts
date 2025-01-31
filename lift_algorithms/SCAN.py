@@ -23,30 +23,30 @@ class ScanAlgorithm(BaseLiftAlgorithm):
             if len(pick_up) + len(lift_occupants) - len(drop_off) >= self.capacity:
                 break
             # if lift is going up and there is a user that also wants to take them up
-            if user.end_floor > current_floor and self.direction or current_floor == len(floors) - 1:
+            if user.end_floor > current_floor and self.direction or self.should_change_direction(floors, current_floor, lift_occupants):
                 pick_up.append(user)
             # if lift is going down and there is a user that also wants to go down take them or the lift is about to go up
-            elif user.end_floor < current_floor and not self.direction or current_floor == 0:
+            elif user.end_floor < current_floor and not self.direction or self.should_change_direction(floors, current_floor, lift_occupants):
                 pick_up.append(user)
 
         # based on if lift can do somthing at the floor decide what to do next
         if len(pick_up) > 0 or len(drop_off) > 0:
             return LiftAction(Action.open_doors, pick_up, drop_off)
 
-        #make sure there is a person to move to
+        # make sure there is a person to move to
         if all(len(floor) == 0 for floor in floors) and len(lift_occupants) == 0:
             return LiftAction(Action.wait, [], [])
 
-        #otherwise move
+        # otherwise move
+        if self.should_change_direction(floors, current_floor, lift_occupants):
+            self.direction = not self.direction
         if self.direction:
-            # switch directions if at the top
-            if current_floor == len(floors) - 1:
-                self.direction = False
-                return LiftAction(Action.move_down)
             return LiftAction(Action.move_up)
         else:
-            # switch directions if at the bottom
-            if current_floor == 0:
-                self.direction = True
-                return LiftAction(Action.move_up)
             return LiftAction(Action.move_down)
+
+    def should_change_direction(self, floors: List[List[User]], current_floor: int, lift_occupants: List[User]) -> bool:
+        if self.direction:
+            return current_floor == len(floors) - 1
+        else:
+            return current_floor == 0

@@ -47,9 +47,9 @@ What do you want to do?:
             # ask for algorithm
             chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
-            if chosen_algorithm == "LOOK":
+            if chosen_algorithm == "LOOK" or chosen_algorithm == "1":
                 algorithm: BaseLiftAlgorithm = LookAlgorithm()
-            elif chosen_algorithm == "SCAN":
+            elif chosen_algorithm == "SCAN" or chosen_algorithm == "2":
                 algorithm: BaseLiftAlgorithm = ScanAlgorithm()
             else:
                 print("Invalid algorithm")
@@ -63,15 +63,22 @@ What do you want to do?:
             chosen_id = get_sim_id()
             if chosen_id is None:
                 continue
+            #ask for type of stats
+            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):")
             # get stats on that id
-            try:
-                statistics.get_statistics(int(chosen_id), "SCAN")
-            except Exception as e:
-                print (e)
-            try:
-                statistics.get_statistics(int(chosen_id), "LOOK")
-            except Exception as e:
-                print(e)
+            if statistics_type == "1":
+                try:
+                    statistics.get_statistics_of_algorithm(int(chosen_id), "SCAN")
+                except Exception as e:
+                    print(e)
+                try:
+                    statistics.get_statistics_of_algorithm(int(chosen_id), "LOOK")
+                except Exception as e:
+                    print(e)
+            elif statistics_type == "2":
+                statistics.compare_statistics(int(chosen_id))
+            else:
+                print("Invalid statistics type")
         elif user_input == '4':
             if logging.getLogger().isEnabledFor(logging.INFO):
                 logging.getLogger().setLevel(logging.ERROR)

@@ -48,7 +48,9 @@ def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgor
     output = {}
     for value in values:
         output[value.id] = value.get_output_data()
-    json_data[algorithm.name] = output
+    if "algorithm output" not in json_data:
+        json_data["algorithm output"] = {}
+    json_data["algorithm output"][algorithm.name] = output
     # write all data
     with open(f"simulations/simulation_{simulation_id}.json", "w") as f:
         f.write(json.dumps(json_data, indent=4))

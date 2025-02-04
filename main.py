@@ -63,12 +63,12 @@ What do you want to do?:
             chosen_id = get_sim_id()
             if chosen_id is None:
                 continue
-            #ask for type of stats
-            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):")
+            # ask for type of stats
+            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):") #todo add option for mutiple ids
             # get stats on that id
             if statistics_type == "1":
                 try:
-                    statistics.get_statistics_of_algorithm(int(chosen_id), "SCAN")
+                    statistics.show_statistics_of_algorithm(int(chosen_id), "SCAN")
                 except Exception as e:
                     print(e)
                 try:
@@ -76,7 +76,7 @@ What do you want to do?:
                 except Exception as e:
                     print(e)
             elif statistics_type == "2":
-                statistics.compare_statistics(int(chosen_id))
+                statistics.show_compare_statistics(int(chosen_id))
             else:
                 print("Invalid statistics type")
         elif user_input == '4':

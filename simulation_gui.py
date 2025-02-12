@@ -1,7 +1,7 @@
 import json
 import math
 import sys
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import pygame
 from pygame.time import Clock
@@ -16,11 +16,15 @@ padding = 10
 
 lift_width = 100
 
+user_base_height = 200
+user_base_width = 100
+
 
 class SimulationGUI:
     window: pygame.Surface
     clock: Clock
     quit = False
+    user_image: pygame.Surface
 
     constants: Dict[str, int]
     future_users: List[User]
@@ -45,6 +49,7 @@ class SimulationGUI:
         pygame.display.set_caption(f"Lift Simulation of {algorithm.name}")
         self.clock = pygame.time.Clock()
         self.win = pygame.display.set_mode((window_size, window_size), pygame.HWSURFACE | pygame.DOUBLEBUF)
+        self.user_image = pygame.image.load('data/user_image.png').convert_alpha()
 
         # load the constants
         with open("data/constants.json", "r") as f:
@@ -95,9 +100,41 @@ class SimulationGUI:
 
     def render_floors(self):
         for floor in range(self.total_floors):
+            # draw floor
             pygame.draw.rect(self.win, 0xffffff, (
-            padding + lift_width, self.get_floor_height() * (floor + 1), window_size - (2 * padding) + lift_width,
-            self.get_floor_height() * 0.1))
+                padding + lift_width, self.get_floor_height() * (floor + 1), window_size - (2 * padding) + lift_width,
+                self.get_floor_height() * 0.1))
+            # todo render floor number
+
+            # draw people on the floor
+            users = self.floors[self.total_floors - 1 - floor]  # todo dont include users being animated
+            if len(users) == 0:
+                continue
+
+            user_x_offset = padding + lift_width + padding
+            user_scale = min((self.get_floor_height() * 0.9) / user_base_height,
+                             ((window_size - (2 * padding) + lift_width)) / (user_base_width * len(users))) # todo not width proper
+            for user in users:
+                self.render_user(user, (user_x_offset, self.get_floor_height() * (floor + 0.1)), user_scale)
+                user_x_offset += user_base_width * 1.05 * user_scale
+
+    def render_user(self, user: User, render_pos: Tuple[float, float], scale: float):
+        user_surface = pygame.Surface((user_base_width, user_base_height), pygame.SRCALPHA)
+        # render user image
+        user_surface.blit(self.user_image, (0, 0))
+
+        # add relevant data
+        font = pygame.font.SysFont("monospace", 30)
+        target_floor_text = font.render(f"End:{user.end_floor}", True, (255, 255, 255))
+        user_id_text = font.render(f"Id:{user.id}", True, (255, 255, 255))
+        user_time_text = font.render(f"T:{round(self.simulation_time - user.start_time)}", True, (255, 255, 255))
+        user_surface.blit(target_floor_text, ((user_base_width - target_floor_text.get_size()[0]) / 2, 0))
+        user_surface.blit(user_id_text, ((user_base_width - user_id_text.get_size()[0]) / 2, 50))
+        user_surface.blit(user_time_text, ((user_base_width - user_time_text.get_size()[0]) / 2, 100))
+        # scale user
+        user_surface = pygame.transform.scale(user_surface, (user_base_width * scale, user_base_height * scale))
+        # render to screen
+        self.win.blit(user_surface, render_pos)
 
     def get_floor_height(self):
         return (window_size - 2 * padding) / self.total_floors
@@ -177,15 +214,14 @@ class SimulationGUI:
                 self.quit = True
             # keyboard
             if event.type == pygame.KEYDOWN:
-                #pause / play simulation
+                # pause / play simulation
                 if event.key == pygame.K_SPACE:
                     self.simulation_running = not self.simulation_running
-                #increase/decrease simulation speed
+                # increase/decrease simulation speed
                 if event.key == pygame.K_LEFT:
                     self.simulation_speed -= 1
                 if event.key == pygame.K_RIGHT:
                     self.simulation_speed += 1
-
 
 
 def run_simulation_gui(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[User]:

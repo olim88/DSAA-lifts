@@ -20,7 +20,7 @@ def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
         f.write(json.dumps(output, indent=4))
 
 
-def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
+def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]: #todo handle errors in formating
     """loads the simulation json into a list of users. And the number of floors the simulation has"""
     users = []
     floors = 0

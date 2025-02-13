@@ -16,15 +16,16 @@ padding = 10
 
 lift_width = 100
 
-user_base_height = 200
-user_base_width = 100
-
 
 class SimulationGUI:
     window: pygame.Surface
     clock: Clock
     quit = False
+
     user_image: pygame.Surface
+    user_image_width: int
+    user_image_height: int
+    show_user_info: bool = False
 
     constants: Dict[str, int]
     future_users: List[User]
@@ -50,6 +51,7 @@ class SimulationGUI:
         self.clock = pygame.time.Clock()
         self.win = pygame.display.set_mode((window_size, window_size), pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.user_image = pygame.image.load('data/user_image.png').convert_alpha()
+        self.user_image_width, self.user_image_height = self.user_image.get_size()
 
         # load the constants
         with open("data/constants.json", "r") as f:
@@ -90,6 +92,13 @@ class SimulationGUI:
         pygame.display.flip()
 
     def render_lift_shaft(self):
+        #render floor numbers in shaft
+        for floor in range(self.total_floors):
+            font = pygame.font.SysFont("monospace", int(self.get_floor_height() * 0.9))
+            floor_label = font.render(str(self.total_floors - floor - 1), True, (255, 255, 255))
+            self.win.blit(floor_label, (padding+(lift_width - floor_label.get_width())/2, self.get_floor_height() * floor  + (self.get_floor_height() - floor_label.get_height())/2))
+
+        #render lift
         lift_y = 1000 - padding - (self.get_floor_height() * (self.current_floor + 1))
         if self.current_action.action == Action.move_down:
             lift_y += self.get_floor_height() * self.get_percent_through_animation()
@@ -100,41 +109,49 @@ class SimulationGUI:
 
     def render_floors(self):
         for floor in range(self.total_floors):
+            floor_y = self.get_floor_height() * (floor + 1)
             # draw floor
             pygame.draw.rect(self.win, 0xffffff, (
-                padding + lift_width, self.get_floor_height() * (floor + 1), window_size - (2 * padding) + lift_width,
+                padding + lift_width, floor_y, window_size - (padding + lift_width),
                 self.get_floor_height() * 0.1))
-            # todo render floor number
 
             # draw people on the floor
-            users = self.floors[self.total_floors - 1 - floor]  # todo dont include users being animated
+            users = self.floors[self.total_floors - 1 - floor]  # todo handle users leaving the floor
             if len(users) == 0:
                 continue
 
             user_x_offset = padding + lift_width + padding
-            user_scale = min((self.get_floor_height() * 0.9) / user_base_height,
-                             ((window_size - (2 * padding) + lift_width)) / (user_base_width * len(users))) # todo not width proper
+            user_width_with_spacer = self.user_image_width * 1.05
+            user_scale = min((self.get_floor_height() * 0.9) / self.user_image_height,
+                             (window_size - (2 * padding + lift_width)) / (user_width_with_spacer * len(users)))
             for user in users:
-                self.render_user(user, (user_x_offset, self.get_floor_height() * (floor + 0.1)), user_scale)
-                user_x_offset += user_base_width * 1.05 * user_scale
+                self.render_user(user, (user_x_offset, floor_y), user_scale)
+                user_x_offset += user_width_with_spacer * user_scale
 
-    def render_user(self, user: User, render_pos: Tuple[float, float], scale: float):
-        user_surface = pygame.Surface((user_base_width, user_base_height), pygame.SRCALPHA)
+    def render_user(self, user: User, feet_pos: Tuple[float, float], scale: float):  # todo fade  out users
+        user_surface = pygame.Surface((self.user_image_width, self.user_image_height), pygame.SRCALPHA)
+        user_time = self.simulation_time - user.start_time
         # render user image
         user_surface.blit(self.user_image, (0, 0))
 
-        # add relevant data
-        font = pygame.font.SysFont("monospace", 30)
-        target_floor_text = font.render(f"End:{user.end_floor}", True, (255, 255, 255))
-        user_id_text = font.render(f"Id:{user.id}", True, (255, 255, 255))
-        user_time_text = font.render(f"T:{round(self.simulation_time - user.start_time)}", True, (255, 255, 255))
-        user_surface.blit(target_floor_text, ((user_base_width - target_floor_text.get_size()[0]) / 2, 0))
-        user_surface.blit(user_id_text, ((user_base_width - user_id_text.get_size()[0]) / 2, 50))
-        user_surface.blit(user_time_text, ((user_base_width - user_time_text.get_size()[0]) / 2, 100))
+        # add relevant data if enabled
+        if self.show_user_info:
+            font = pygame.font.SysFont("monospace", 30)
+            target_floor_text = font.render(f"End:{user.end_floor}", True, (255, 255, 255))
+            user_id_text = font.render(f"Id:{user.id}", True, (255, 255, 255))
+            user_time_text = font.render(f"T:{round(user_time)}", True, (255, 255, 255))
+            user_surface.blit(target_floor_text, ((self.user_image_width - target_floor_text.get_size()[0]) / 2, 0))
+            user_surface.blit(user_id_text, ((self.user_image_width - user_id_text.get_size()[0]) / 2, 50))
+            user_surface.blit(user_time_text, ((self.user_image_width - user_time_text.get_size()[0]) / 2, 100))
+
         # scale user
-        user_surface = pygame.transform.scale(user_surface, (user_base_width * scale, user_base_height * scale))
+        user_surface = pygame.transform.scale(user_surface,
+                                              (self.user_image_width * scale, self.user_image_height * scale))
+        # fade the user if they are new
+        if user_time < 1:
+            user_surface.set_alpha(round(255 * user_time))
         # render to screen
-        self.win.blit(user_surface, render_pos)
+        self.win.blit(user_surface, (feet_pos[0], feet_pos[1] - self.user_image_height * scale))
 
     def get_floor_height(self):
         return (window_size - 2 * padding) / self.total_floors
@@ -222,6 +239,9 @@ class SimulationGUI:
                     self.simulation_speed -= 1
                 if event.key == pygame.K_RIGHT:
                     self.simulation_speed += 1
+                # toggle user info
+                if event.key == pygame.K_i:
+                    self.show_user_info = not self.show_user_info
 
 
 def run_simulation_gui(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[User]:

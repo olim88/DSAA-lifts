@@ -61,7 +61,7 @@ What do you want to do?:
             # run correct algorithm
             if is_gui == "y":
                 print("Visualizing simulation...")
-                print("Use SPACE to pause, LEFT ARROW to slow down, RIGHT ARROW to speed up")
+                print("Use SPACE to pause, LEFT ARROW to slow down, RIGHT ARROW to speed up, I to toggle info about users")
                 simulation_gui.SimulationGUI(algorithm, int(chosen_id))
 
             elif is_gui == "n":
@@ -73,7 +73,7 @@ What do you want to do?:
             if chosen_id is None:
                 continue
             # ask for type of stats
-            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):") #todo add option for mutiple ids
+            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):") #todo add option for multiple ids
             # get stats on that id
             if statistics_type == "1":
                 try:

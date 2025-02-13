@@ -137,7 +137,7 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
             people_change = len(completed_action.add) + len(
                 completed_action.remove)
             current_time += (constants["first pickup time"] if last_action.action != Action.open_doors else 0) + \
-                            constants["extra pickup time"] * (people_change - 1)
+                            constants["extra pickup time"] * people_change
             logging.info(f"took on: {len(completed_action.add)}. dropped off: {len(completed_action.remove)}.")
             logging.info(f"there are now {len(lift_occupants)} users in the lift")
         # update last actin

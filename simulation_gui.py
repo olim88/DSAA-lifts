@@ -1,6 +1,7 @@
 import json
 import math
 import sys
+from copy import copy
 from typing import List, Dict, Tuple
 
 import pygame
@@ -99,7 +100,7 @@ class SimulationGUI:
             floor_label = font.render(str(self.total_floors - floor - 1), True, (255, 255, 255))
             self.win.blit(floor_label, (padding + (lift_width - floor_label.get_width()) / 2,
                                         self.get_floor_height() * floor + (
-                                                    self.get_floor_height() - floor_label.get_height()) / 2))
+                                                self.get_floor_height() - floor_label.get_height()) / 2))
 
         # render lift
         lift_y = 1000 - padding - (self.get_floor_height() * (self.current_floor + 1))
@@ -108,7 +109,44 @@ class SimulationGUI:
         elif self.current_action.action == Action.move_up:
             lift_y -= self.get_floor_height() * self.get_percent_through_animation()
 
+        # render the lift
         pygame.draw.rect(self.win, 0x1212ff, (padding, lift_y, lift_width, self.get_floor_height()))
+
+        # render users in lift
+        user_y = lift_y + self.get_floor_height()
+        user_x = padding
+        user_scale = min(self.get_floor_height() / self.user_image_height,
+                         lift_width / (self.user_image_width * self.capacity))
+        #work out who to show in the lift
+        rendered_users = copy(self.lift_occupants)
+        opacity = -1
+        if self.current_action.action == Action.open_doors:
+            people_leaving: bool =  not len(self.current_action.remove) == 0
+            people_joining: bool =  not len(self.current_action.add) == 0
+            #if just people joining fade them in over time
+            if people_joining and not people_leaving:
+                rendered_users.extend(self.current_action.add)
+                opacity = 255 * self.get_percent_through_animation()
+            # if just people leaving fade them out over the whole time
+            elif people_joining and not people_joining:
+                opacity = 255 * (1 - self.get_percent_through_animation())
+            #else if people joining and leaving split animation time
+            else:
+                if  self.get_percent_through_animation() < 0.5:
+                    opacity = 255 * (1 - self.get_percent_through_animation() * 2)
+                else:
+                    rendered_users.extend(self.current_action.add)
+                    rendered_users = [user for user in rendered_users if (user not in self.current_action.remove)]
+                    opacity = 255 * ( (self.get_percent_through_animation() - 0.5) * 2)
+
+        #render each of the users in the lift
+        for user in rendered_users:
+            # enable opacity where needed
+            if self.current_action.action == Action.open_doors and (self.current_action.add is not None and user in self.current_action.add) or (self.current_action.remove is not None and user in self.current_action.remove):
+                self.render_user(user, (user_x, user_y), user_scale, opacity)
+            else:
+                self.render_user(user, (user_x, user_y), user_scale)
+            user_x += self.user_image_width * user_scale
 
     def render_floors(self):
         for floor in range(self.total_floors):
@@ -128,10 +166,16 @@ class SimulationGUI:
             user_scale = min((self.get_floor_height() * 0.9) / self.user_image_height,
                              (window_size - (2 * padding + lift_width)) / (user_width_with_spacer * len(users)))
             for user in users:
-                self.render_user(user, (user_x_offset, floor_y), user_scale)
+                # check if user should fade out
+                # check if the user is fading out
+                opacity = -1
+                if self.current_action.action == Action.open_doors and user in self.current_action.add:
+                    opacity = 255 * (1 - self.get_percent_through_animation())
+                # send the user to be rendered
+                self.render_user(user, (user_x_offset, floor_y), user_scale, opacity)
                 user_x_offset += user_width_with_spacer * user_scale
 
-    def render_user(self, user: User, feet_pos: Tuple[float, float], scale: float):  # todo fade  out users
+    def render_user(self, user: User, feet_pos: Tuple[float, float], scale: float, opacity=-1):  # todo fade  out users
         user_surface = pygame.Surface((self.user_image_width, self.user_image_height), pygame.SRCALPHA)
         user_time = self.simulation_time - user.start_time
         # render user image
@@ -151,7 +195,9 @@ class SimulationGUI:
         user_surface = pygame.transform.scale(user_surface,
                                               (self.user_image_width * scale, self.user_image_height * scale))
         # fade the user if they are new
-        if user_time < 1:
+        if opacity != -1:
+            user_surface.set_alpha(opacity)
+        elif user_time < 1:
             user_surface.set_alpha(round(255 * user_time))
         # render to screen
         self.win.blit(user_surface, (feet_pos[0], feet_pos[1] - self.user_image_height * scale))
@@ -170,7 +216,7 @@ class SimulationGUI:
         elif self.current_action.action == Action.open_doors:
             people_change = len(self.current_action.add) + len(self.current_action.remove)
             return (self.constants["first pickup time"] if not self.last_action.action == Action.open_doors else 0) + \
-                self.constants["extra pickup time"] * (people_change - 1)
+                self.constants["extra pickup time"] * people_change
 
         raise Exception("Invalid action")
 

@@ -73,7 +73,7 @@ What do you want to do?:
             if chosen_id is None:
                 continue
             # ask for type of stats
-            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):") #todo add option for multiple ids
+            statistics_type = input("Choose a statistics type (1 - individual, 2 - compared):")
             # get stats on that id
             if statistics_type == "1":
                 try:

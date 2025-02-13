@@ -20,7 +20,7 @@ def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
         f.write(json.dumps(output, indent=4))
 
 
-def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]: #todo handle errors in formating
+def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:  # todo handle errors in formating
     """loads the simulation json into a list of users. And the number of floors the simulation has"""
     users = []
     floors = 0
@@ -93,6 +93,7 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
     current_floor = constants["start floor"]
     lift_occupants = []
     floors = [[] for floor in range(total_floors)]
+    last_action: LiftAction = LiftAction(Action.wait)
 
     # run lift loop until simulation finished
     while True:
@@ -134,10 +135,13 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
             finished_users.extend(completed_action.remove)
             # calculate time taken
             people_change = len(completed_action.add) + len(
-                completed_action.remove)  # todo if sombody comes during this time only add extra person time
-            current_time += constants["first pickup time"] + constants["extra pickup time"] * (people_change - 1)
+                completed_action.remove)
+            current_time += (constants["first pickup time"] if last_action.action != Action.open_doors else 0) + \
+                            constants["extra pickup time"] * (people_change - 1)
             logging.info(f"took on: {len(completed_action.add)}. dropped off: {len(completed_action.remove)}.")
             logging.info(f"there are now {len(lift_occupants)} users in the lift")
+        # update last actin
+        last_action = completed_action
 
         logging.info(f"current time: {current_time}. users left: {total_users - len(finished_users)}")
 

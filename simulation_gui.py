@@ -43,6 +43,7 @@ class SimulationGUI:
     simulation_running: bool = True
     next_action_time: float = 0
     current_action: LiftAction = LiftAction(Action.wait)
+    last_action: LiftAction = LiftAction(Action.wait)
 
     def __init__(self, algorithm: BaseLiftAlgorithm, simulation_id: int):
         # setup pygame
@@ -92,13 +93,15 @@ class SimulationGUI:
         pygame.display.flip()
 
     def render_lift_shaft(self):
-        #render floor numbers in shaft
+        # render floor numbers in shaft
         for floor in range(self.total_floors):
             font = pygame.font.SysFont("monospace", int(self.get_floor_height() * 0.9))
             floor_label = font.render(str(self.total_floors - floor - 1), True, (255, 255, 255))
-            self.win.blit(floor_label, (padding+(lift_width - floor_label.get_width())/2, self.get_floor_height() * floor  + (self.get_floor_height() - floor_label.get_height())/2))
+            self.win.blit(floor_label, (padding + (lift_width - floor_label.get_width()) / 2,
+                                        self.get_floor_height() * floor + (
+                                                    self.get_floor_height() - floor_label.get_height()) / 2))
 
-        #render lift
+        # render lift
         lift_y = 1000 - padding - (self.get_floor_height() * (self.current_floor + 1))
         if self.current_action.action == Action.move_down:
             lift_y += self.get_floor_height() * self.get_percent_through_animation()
@@ -159,14 +162,15 @@ class SimulationGUI:
     def get_percent_through_animation(self):
         return 1 - min((self.next_action_time - self.simulation_time) / self.get_action_length(), 1)
 
-    def get_action_length(self) -> int:
+    def get_action_length(self) -> int:  # todo move to simulation handler
         if self.current_action.action == Action.wait:
             return 1
         elif self.current_action.action == Action.move_up or self.current_action.action == Action.move_down:
             return self.constants["time between floors"]
         elif self.current_action.action == Action.open_doors:
             people_change = len(self.current_action.add) + len(self.current_action.remove)
-            return self.constants["first pickup time"] + self.constants["extra pickup time"] * (people_change - 1)
+            return (self.constants["first pickup time"] if not self.last_action.action == Action.open_doors else 0) + \
+                self.constants["extra pickup time"] * (people_change - 1)
 
         raise Exception("Invalid action")
 
@@ -202,6 +206,8 @@ class SimulationGUI:
                 # add to output
                 self.finished_users.extend(self.current_action.remove)
 
+            # update old action
+            self.last_action = self.current_action
             # get the next action
             self.current_action = self.algorithm.calculate(self.lift_occupants, self.floors,
                                                            math.floor(self.simulation_time), self.current_floor)

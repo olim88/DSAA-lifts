@@ -14,6 +14,10 @@ from lift_algorithms.SCAN import ScanAlgorithm
 
 
 def get_sim_id() -> str | None:
+    """
+    asks the user to enter a simulation id
+    :return: simulation id or None if no simulation id
+    """
     ids = [sim.split("_")[1].split(".")[0] for sim in os.listdir("simulations")]
     print("Simulation IDs: {}".format(", ".join(ids)))
     chosen_id = input(f"Choose a simulation id:")
@@ -49,7 +53,6 @@ What do you want to do?:
             # ask for algorithm
             chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
-
             if chosen_algorithm == "LOOK" or chosen_algorithm == "1":
                 algorithm: BaseLiftAlgorithm = LookAlgorithm()
             elif chosen_algorithm == "SCAN" or chosen_algorithm == "2":
@@ -61,15 +64,19 @@ What do you want to do?:
             # run correct algorithm
             if is_gui == "y":
                 print("Visualizing simulation...")
-                print("Use SPACE to pause, LEFT ARROW to slow down, RIGHT ARROW to speed up, I to toggle info about users")
+                print(
+                    "Use SPACE to pause, LEFT ARROW to slow down, RIGHT ARROW to speed up, I to toggle info about users")
                 simulation_gui.SimulationGUI(algorithm, int(chosen_id))
 
             elif is_gui == "n":
                 simulation_output = simulation_handler.run_simulation(algorithm, int(chosen_id))
                 simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)
+                print(f"Simulation output saved for {algorithm.name} algorithm")
         elif user_input == '3':
             # ask the user for id
+
             chosen_id = get_sim_id()
+
             if chosen_id is None:
                 continue
             # ask for type of stats

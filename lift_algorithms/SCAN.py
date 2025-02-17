@@ -5,6 +5,9 @@ from simulation_handler import User
 
 
 class ScanAlgorithm(BaseLiftAlgorithm):
+    """
+    Lift algorithm that goes all the way to the top and then to the bottom picking up users going in the correct direction
+    """
     direction: bool  # true == up
 
     def __init__(self):
@@ -23,10 +26,13 @@ class ScanAlgorithm(BaseLiftAlgorithm):
             if len(pick_up) + len(lift_occupants) - len(drop_off) >= self.capacity:
                 break
             # if lift is going up and there is a user that also wants to take them up
-            if user.end_floor > current_floor and self.direction or self.should_change_direction(floors, current_floor, lift_occupants):
+            if user.end_floor > current_floor and self.direction or self.should_change_direction(floors, current_floor,
+                                                                                                 lift_occupants):
                 pick_up.append(user)
             # if lift is going down and there is a user that also wants to go down take them or the lift is about to go up
-            elif user.end_floor < current_floor and not self.direction or self.should_change_direction(floors, current_floor, lift_occupants):
+            elif user.end_floor < current_floor and not self.direction or self.should_change_direction(floors,
+                                                                                                       current_floor,
+                                                                                                       lift_occupants):
                 pick_up.append(user)
 
         # based on if lift can do somthing at the floor decide what to do next

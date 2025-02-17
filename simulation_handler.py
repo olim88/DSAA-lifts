@@ -41,6 +41,12 @@ def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:  # todo 
 
 
 def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgorithm):
+    """
+    Saves simulation output to the simulation file
+    :param values: output of the simulation
+    :param simulation_id: id of the simulation
+    :param algorithm: algorithm to use to get the output
+    """
     # load existing file data
     with open(f"simulations/simulation_{simulation_id}.json", "r") as f:
         json_data = json.load(f)
@@ -57,6 +63,13 @@ def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgor
 
 
 def create_simulation(total_floors: int, user_count: int, max_start_time: int) -> List[User]:
+    """
+    Creates a simulation based on given parameters
+    :param total_floors: total number of floors in the simulation
+    :param user_count: how many users to simulate
+    :param max_start_time: how long it can take for a user to spawn
+    :return: list of users for created simulation
+    """
     values = []
     for user_id in range(user_count):
 
@@ -71,6 +84,9 @@ def create_simulation(total_floors: int, user_count: int, max_start_time: int) -
 
 
 def create_simulation_from_inputs():
+    """
+    Creates and saves a simulation based on user input
+    """
     floors = int(input("Enter the number of floors: "))
     user_count = int(input("Enter the number of users: "))
     max_start_time = int(input("Enter the maximum start time: "))
@@ -81,6 +97,12 @@ def create_simulation_from_inputs():
 
 
 def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[User]:
+    """
+    Runs a given simulation using the given algorithm and id
+    :param algorithm: algorithm to use to get the output
+    :param simulation_id: simulation id to run
+    :return: simulated users with times
+    """
     # load the constants
     with open("data/constants.json", "r") as f:
         constants = json.load(f)

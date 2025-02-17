@@ -11,14 +11,20 @@ import simulation_handler
 from lift_algorithms.lift import BaseLiftAlgorithm, LiftAction, Action
 from user import User
 
+#simulation dimensions
 window_size = 1000
-
 padding = 10
-
 lift_width = 100
 
+#simulation colours
+background_color = (232, 249, 255)
+lift_color = (154, 166, 178)
+floor_color = (196, 217, 255)
+floor_label_color = (161, 227, 249)
+user_info_color = (10, 10, 10)
 
 class SimulationGUI:
+    """Uses pygame to display the simulation."""
     window: pygame.Surface
     clock: Clock
     quit = False
@@ -83,8 +89,12 @@ class SimulationGUI:
         pygame.quit()
 
     def render(self):
+        """
+        Render everything to the pygame window then flip it
+        :return:
+        """
         # fill background
-        self.win.fill((0, 0, 0))
+        self.win.fill(background_color)
 
         # draw simulation
         self.render_lift_shaft()
@@ -94,10 +104,13 @@ class SimulationGUI:
         pygame.display.flip()
 
     def render_lift_shaft(self):
+        """
+        Renders the lift and floor numbers to the pygame window
+        """
         # render floor numbers in shaft
         for floor in range(self.total_floors):
             font = pygame.font.SysFont("monospace", int(self.get_floor_height() * 0.9))
-            floor_label = font.render(str(self.total_floors - floor - 1), True, (255, 255, 255))
+            floor_label = font.render(str(self.total_floors - floor - 1), True, floor_label_color)
             self.win.blit(floor_label, (padding + (lift_width - floor_label.get_width()) / 2,
                                         self.get_floor_height() * floor + (
                                                 self.get_floor_height() - floor_label.get_height()) / 2))
@@ -110,7 +123,7 @@ class SimulationGUI:
             lift_y -= self.get_floor_height() * self.get_percent_through_animation()
 
         # render the lift
-        pygame.draw.rect(self.win, 0x1212ff, (padding, lift_y, lift_width, self.get_floor_height()))
+        pygame.draw.rect(self.win, lift_color, (padding, lift_y, lift_width, self.get_floor_height()))
 
         # render users in lift
         user_y = lift_y + self.get_floor_height()
@@ -149,15 +162,18 @@ class SimulationGUI:
             user_x += self.user_image_width * user_scale
 
     def render_floors(self):
+        """
+        Renders floors and waiting users to pygame window
+        """
         for floor in range(self.total_floors):
             floor_y = self.get_floor_height() * (floor + 1)
             # draw floor
-            pygame.draw.rect(self.win, 0xffffff, (
+            pygame.draw.rect(self.win, floor_color, (
                 padding + lift_width, floor_y, window_size - (padding + lift_width),
                 self.get_floor_height() * 0.1))
 
             # draw people on the floor
-            users = self.floors[self.total_floors - 1 - floor]  # todo handle users leaving the floor
+            users = self.floors[self.total_floors - 1 - floor]
             if len(users) == 0:
                 continue
 
@@ -175,7 +191,14 @@ class SimulationGUI:
                 self.render_user(user, (user_x_offset, floor_y), user_scale, opacity)
                 user_x_offset += user_width_with_spacer * user_scale
 
-    def render_user(self, user: User, feet_pos: Tuple[float, float], scale: float, opacity=-1):  # todo fade  out users
+    def render_user(self, user: User, feet_pos: Tuple[float, float], scale: float, opacity=-1):
+        """
+        Renders a user on the pygame window
+        :param user: user to render
+        :param feet_pos: where to render the users feet
+        :param scale: how big render the user
+        :param opacity: the opacity of the user
+        """
         user_surface = pygame.Surface((self.user_image_width, self.user_image_height), pygame.SRCALPHA)
         user_time = self.simulation_time - user.start_time
         # render user image
@@ -184,9 +207,9 @@ class SimulationGUI:
         # add relevant data if enabled
         if self.show_user_info:
             font = pygame.font.SysFont("monospace", 30)
-            target_floor_text = font.render(f"End:{user.end_floor}", True, (255, 255, 255))
-            user_id_text = font.render(f"Id:{user.id}", True, (255, 255, 255))
-            user_time_text = font.render(f"T:{round(user_time)}", True, (255, 255, 255))
+            target_floor_text = font.render(f"End:{user.end_floor}", True, user_info_color)
+            user_id_text = font.render(f"Id:{user.id}", True, user_info_color)
+            user_time_text = font.render(f"T:{round(user_time)}", True, user_info_color)
             user_surface.blit(target_floor_text, ((self.user_image_width - target_floor_text.get_size()[0]) / 2, 0))
             user_surface.blit(user_id_text, ((self.user_image_width - user_id_text.get_size()[0]) / 2, 50))
             user_surface.blit(user_time_text, ((self.user_image_width - user_time_text.get_size()[0]) / 2, 100))
@@ -203,12 +226,23 @@ class SimulationGUI:
         self.win.blit(user_surface, (feet_pos[0], feet_pos[1] - self.user_image_height * scale))
 
     def get_floor_height(self):
+        """
+        :return: how height the floor is.
+        """
         return (window_size - 2 * padding) / self.total_floors
 
     def get_percent_through_animation(self):
+        """
+        calculates the percent through the animation
+        :return: percent through the animation
+        """
         return 1 - min((self.next_action_time - self.simulation_time) / self.get_action_length(), 1)
 
-    def get_action_length(self) -> int:  # todo move to simulation handler
+    def get_action_length(self) -> int:
+        """
+        calculates the length of the current action
+        :return: length of the current action
+        """
         if self.current_action.action == Action.wait:
             return 1
         elif self.current_action.action == Action.move_up or self.current_action.action == Action.move_down:
@@ -221,6 +255,10 @@ class SimulationGUI:
         raise Exception("Invalid action")
 
     def update(self):
+        """
+        Updates the simulation
+        :return:
+        """
         self.clock.tick(60)
 
         # add new users to floors
@@ -276,6 +314,10 @@ class SimulationGUI:
              Future: {len(self.future_users)}""")
 
     def get_user_input(self):
+        """
+        Listens to user input controlling the simulation
+        :return:
+        """
         # listen for user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -297,6 +339,12 @@ class SimulationGUI:
 
 
 def run_simulation_gui(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[User]:
+    """
+    Runs the main loop of simulation until finished
+    :param algorithm: algorithm to run
+    :param simulation_id: id of the simulation
+    :return: simulated users with times(could have errors due to lag in gui)
+    """
     # load the constants
     with open("data/constants.json", "r") as f:
         constants = json.load(f)

@@ -2,6 +2,9 @@ from typing import List
 
 
 class User:
+    """
+    Class to hold the user details
+    """
     id: int
     start_floor: int
     end_floor: int

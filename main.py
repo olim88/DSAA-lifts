@@ -66,17 +66,21 @@ What do you want to do?:
                 print("Visualizing simulation...")
                 print(
                     "Use SPACE to pause, LEFT ARROW to slow down, RIGHT ARROW to speed up, I to toggle info about users")
-                simulation_gui.SimulationGUI(algorithm, int(chosen_id))
+                try:
+                    simulation_gui.SimulationGUI(algorithm, int(chosen_id))
+                except Exception as e:
+                    print(f"Simulation Failed: {e}")
 
             elif is_gui == "n":
-                simulation_output = simulation_handler.run_simulation(algorithm, int(chosen_id))
-                simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)
-                print(f"Simulation output saved for {algorithm.name} algorithm")
+                try:
+                    simulation_output = simulation_handler.run_simulation(algorithm, int(chosen_id))
+                    simulation_handler.save_output(simulation_output, int(chosen_id), algorithm)
+                    print(f"Simulation output saved for {algorithm.name} algorithm")
+                except Exception as e:
+                    print(f"Simulation Failed: {e}")
         elif user_input == '3':
             # ask the user for id
-
             chosen_id = get_sim_id()
-
             if chosen_id is None:
                 continue
             # ask for type of stats

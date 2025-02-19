@@ -20,24 +20,39 @@ def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
         f.write(json.dumps(output, indent=4))
 
 
-def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:  # todo handle errors in formating
+def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
     """loads the simulation json into a list of users. And the number of floors the simulation has"""
     users = []
     floors = 0
     lift_capacity = 0
-    with open(f"simulations/simulation_{simulation_id}.json", "r") as f:
-        json_data = json.load(f)
-    for key in json_data:
-        if key == "floors":
-            floors = json_data[key]
-            continue
-        elif key == "lift capacity":
-            lift_capacity = json_data[key]
-            continue
-        if key.isdigit():
-            users.append(User(key, json_data[key][0], json_data[key][1], json_data[key][2]))
+    # make sure that the file is valid
+    try:
+        with open(f"simulations/simulation_{simulation_id}.json", "r") as f:
+            json_data = json.load(f)
+        for key in json_data:
+            if key == "floors":
+                floors = json_data[key]
+                continue
+            elif key == "lift capacity":
+                lift_capacity = json_data[key]
+                continue
+            if key.isdigit():
+                #check for valid data
+                if len(json_data[key]) == 3 and type(json_data[key][0]) is int and type(
+                        json_data[key][1]) is int and type(json_data[key][2]) is int:
+                    users.append(User(key, json_data[key][0], json_data[key][1], json_data[key][2]))
+                else:
+                    raise Exception()
 
-    return users, floors, lift_capacity
+        return users, floors, lift_capacity
+    except FileNotFoundError:
+        raise Exception("Simulation file not found.")
+    except json.decoder.JSONDecodeError:
+        raise Exception("Simulation file not valid json.")
+    except KeyError:
+        raise Exception("Simulation file not valid json.")
+    except:
+        raise Exception("Invalid entry in simulation file.")
 
 
 def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgorithm):

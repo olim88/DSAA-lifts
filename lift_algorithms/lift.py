@@ -37,12 +37,25 @@ def get_can_drop_off(current_floor: int, lift_occupants: List[User]) -> List[Use
 
 
 class BaseLiftAlgorithm:
+    """Basic parts needed for a lift algorithm to be able to be simulated. When simulating a lift it is assumed that a class inherited from this one"""
     capacity: int
     name: str
 
     def set_capacity(self, capacity: int):
+        """
+        Used to set the maximum capacity of the lift algorithm
+        :param capacity: capacity of the lift algorithm
+        """
         self.capacity = capacity
 
     def calculate(self, lift_occupants: List[User], floors: List[List[User]], current_time: int,
                   current_floor: int) -> LiftAction:
+        """
+        Main part of the lift algorithm. The lift is given the state of the system and needs to return its next action based on how the algorithm works
+        :param lift_occupants:
+        :param floors:
+        :param current_time:
+        :param current_floor:
+        :return:
+        """
         pass

@@ -126,7 +126,7 @@ def show_algorithm_statistics(waiting_times: List[int], inlift_times: List[int],
         f"\tThe total time waiting for lift is {sum(waiting_times)}. With an average of {sum(waiting_times) / total_users}")
     print(f"\tThe total time in lift is {sum(inlift_times)}. With an average of {sum(inlift_times) / total_users}")
     print(
-        f"\tpThe total time spent by users is {sum(waiting_times) + sum(inlift_times)}. With an average of {sum(waiting_times) + sum(inlift_times) / total_users}")
+        f"\tThe total time spent by users is {sum(waiting_times) + sum(inlift_times)}. With an average of {sum(waiting_times) + sum(inlift_times) / total_users}")
 
     # show plots
     plot_times([waiting_times, inlift_times, total_times], algorithm)

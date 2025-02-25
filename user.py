@@ -33,16 +33,19 @@ class User:
 
 class UserQueue:
     users: List[User] = []
+    size: int = 0
 
     def peak(self):
         return self.users[-1]
     def pop(self):
+        self.size -= 1
         return self.users.pop()
-    def push(self, user: User):
+    def enqueue(self, user: User):
+        self.size += 1
         self.users.append(user)
     def is_empty(self):
-        return len(self.users) == 0
+        return self.size == 0
     def get_size(self):
-        return len(self.users)
+        return self.size
 
 

@@ -37,18 +37,18 @@ def open_simulation(simulation_id: int) -> Tuple[UserQueue, int, int]:
                 lift_capacity = json_data[key]
                 continue
             if key.isdigit():
-                #check for valid data
+                # check for valid data
                 if len(json_data[key]) == 3 and type(json_data[key][0]) is int and type(
                         json_data[key][1]) is int and type(json_data[key][2]) is int:
                     users.append(User(key, json_data[key][0], json_data[key][1], json_data[key][2]))
                 else:
                     raise Exception()
 
-        #add users to a queue in order of arrive time
-        user_queue : UserQueue = UserQueue()
-        user_quick_sort(users,0,len(users) - 1)
+        # add users to a queue in order of arrive time
+        user_queue: UserQueue = UserQueue()
+        user_quick_sort(users, 0, len(users) - 1)
         for user in users:
-            user_queue.push(user)
+            user_queue.enqueue(user)
 
         return user_queue, floors, lift_capacity
     except FileNotFoundError:
@@ -61,31 +61,30 @@ def open_simulation(simulation_id: int) -> Tuple[UserQueue, int, int]:
         raise Exception("Invalid entry in simulation file.")
 
 
-def user_quick_sort(users: List[User], low: int, high: int) :
+def user_quick_sort(users: List[User], low: int, high: int):
+    """Sorts a list of users according to their start time from highest to lowest"""
     if low < high:
-        #find partition
-        partition : int = user_quick_sort_partition(users, low, high)
-        #sort both sides
+        # find partition
+        partition: int = user_quick_sort_partition(users, low, high)
+        # sort both sides
         user_quick_sort(users, low, partition - 1)
         user_quick_sort(users, partition + 1, high)
 
 
-
 def user_quick_sort_partition(users: List[User], low: int, high: int) -> int:
     pivot: User = users[high]
-    i : int = low -1
+    i: int = low - 1
     for j in range(low, high):
-        #sort from low to high
+        # sort from high to low
         if users[j].start_time >= pivot.start_time:
             i += 1
-            #swap i and j
-            users[i],users[j] = users[j],users[i]
+            # swap i and j
+            users[i], users[j] = users[j], users[i]
 
-    #do final swap
-    users[i+1],users[high] = users[high],users[i+1]
+    # do final swap
+    users[i + 1], users[high] = users[high], users[i + 1]
 
     return i + 1
-
 
 
 def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgorithm):

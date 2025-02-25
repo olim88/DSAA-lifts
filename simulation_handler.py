@@ -5,7 +5,7 @@ import json
 import random
 
 from lift_algorithms.lift import BaseLiftAlgorithm, LiftAction, Action
-from user import User
+from user import User, UserQueue
 
 
 def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
@@ -20,7 +20,7 @@ def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
         f.write(json.dumps(output, indent=4))
 
 
-def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
+def open_simulation(simulation_id: int) -> Tuple[UserQueue, int, int]:
     """loads the simulation json into a list of users. And the number of floors the simulation has"""
     users = []
     floors = 0
@@ -44,7 +44,13 @@ def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
                 else:
                     raise Exception()
 
-        return users, floors, lift_capacity
+        #add users to a queue in order of arrive time
+        user_queue : UserQueue = UserQueue()
+        user_quick_sort(users,0,len(users) - 1)
+        for user in users:
+            user_queue.push(user)
+
+        return user_queue, floors, lift_capacity
     except FileNotFoundError:
         raise Exception("Simulation file not found.")
     except json.decoder.JSONDecodeError:
@@ -53,6 +59,33 @@ def open_simulation(simulation_id: int) -> Tuple[List[User], int, int]:
         raise Exception("Simulation file not valid json.")
     except:
         raise Exception("Invalid entry in simulation file.")
+
+
+def user_quick_sort(users: List[User], low: int, high: int) :
+    if low < high:
+        #find partition
+        partition : int = user_quick_sort_partition(users, low, high)
+        #sort both sides
+        user_quick_sort(users, low, partition - 1)
+        user_quick_sort(users, partition + 1, high)
+
+
+
+def user_quick_sort_partition(users: List[User], low: int, high: int) -> int:
+    pivot: User = users[high]
+    i : int = low -1
+    for j in range(low, high):
+        #sort from low to high
+        if users[j].start_time >= pivot.start_time:
+            i += 1
+            #swap i and j
+            users[i],users[j] = users[j],users[i]
+
+    #do final swap
+    users[i+1],users[high] = users[high],users[i+1]
+
+    return i + 1
+
 
 
 def save_output(values: List[User], simulation_id: int, algorithm: BaseLiftAlgorithm):
@@ -124,7 +157,7 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
     # set up values
     (future_users, total_floors, capacity) = open_simulation(simulation_id)
     algorithm.set_capacity(capacity)
-    total_users = len(future_users)
+    total_users = future_users.get_size()
     finished_users: List[User] = []
     current_time = 0
     current_floor = constants["start floor"]
@@ -138,10 +171,9 @@ def run_simulation(algorithm: BaseLiftAlgorithm, simulation_id: int) -> List[Use
         if len(finished_users) == total_users:
             break
         # see if any new lift users have arrived since the last action
-        for user in future_users:
-            if user.start_time <= current_time:
-                floors[user.start_floor].append(user)
-                future_users.remove(user)
+        while not future_users.is_empty() and future_users.peak().start_time <= current_time:
+            user = future_users.pop()
+            floors[user.start_floor].append(user)
 
         # send state to lift algorithm
         completed_action: LiftAction = algorithm.calculate(lift_occupants, floors, current_time, current_floor)

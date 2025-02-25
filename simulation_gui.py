@@ -1,6 +1,5 @@
 import json
 import math
-import sys
 from copy import copy
 from typing import List, Dict, Tuple
 
@@ -9,7 +8,7 @@ from pygame.time import Clock
 
 import simulation_handler
 from lift_algorithms.lift import BaseLiftAlgorithm, LiftAction, Action
-from user import User
+from user import User, UserQueue
 
 #simulation dimensions
 window_size = 1000
@@ -35,7 +34,7 @@ class SimulationGUI:
     show_user_info: bool = False
 
     constants: Dict[str, int]
-    future_users: List[User]
+    future_users: UserQueue
     total_floors: int
     capacity: int
     algorithm: BaseLiftAlgorithm
@@ -69,7 +68,7 @@ class SimulationGUI:
         (self.future_users, self.total_floors, self.capacity) = simulation_handler.open_simulation(simulation_id)
         self.algorithm = algorithm
         self.algorithm.set_capacity(self.capacity)
-        self.total_users = len(self.future_users)
+        self.total_users = self.future_users.get_size()
         self.finished_users: List[User] = []
         self.current_floor = self.constants["start floor"]
         self.lift_occupants = []
@@ -263,10 +262,10 @@ class SimulationGUI:
 
         # add new users to floors
         # see if any new lift users have arrived since the last action
-        for user in self.future_users:
-            if user.start_time <= self.simulation_time:
-                self.floors[user.start_floor].append(user)
-                self.future_users.remove(user)
+        while not self.future_users.is_empty() and self.future_users.peak().start_time <= self.simulation_time:
+            user: User = self.future_users.pop()
+            self.floors[user.start_floor].append(user)
+
 
         # if animation has finished for last simulation step get the next step
         if self.simulation_time >= self.next_action_time:
@@ -311,7 +310,7 @@ class SimulationGUI:
              Speed: {self.simulation_speed}.
              Finished: {len(self.finished_users)}. In lift: {len(self.lift_occupants)}. 
              Waiting: {(sum(len(floor) for floor in self.floors))}, 
-             Future: {len(self.future_users)}""")
+             Future: {self.future_users.get_size()}""")
 
     def get_user_input(self):
         """

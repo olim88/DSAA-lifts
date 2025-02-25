@@ -29,3 +29,20 @@ class User:
 
     def set_user_end_traveling(self, current_time: int):
         self.finish_time = current_time
+
+
+class UserQueue:
+    users: List[User] = []
+
+    def peak(self):
+        return self.users[-1]
+    def pop(self):
+        return self.users.pop()
+    def push(self, user: User):
+        self.users.append(user)
+    def is_empty(self):
+        return len(self.users) == 0
+    def get_size(self):
+        return len(self.users)
+
+

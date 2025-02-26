@@ -32,6 +32,7 @@ class User:
 
 
 class UserQueue:
+    "Class to hold queue of users"
     users: List[User] = []
     size: int = 0
 

@@ -52,6 +52,8 @@ def get_statistics_of_algorithm(simulation_id: int, algorithm: str) -> Tuple[Lis
     with open(f"simulations/simulation_{simulation_id}.json", "r") as f:
         raw_data = json.load(f)
     # get data for chosen algorithm
+    if "algorithm output" not in raw_data:
+        raise Exception(f"No algorithm output found for simulation: {simulation_id}")
     if algorithm not in raw_data["algorithm output"]:
         raise Exception(f"Algorithm {algorithm} not found.")
     data = raw_data["algorithm output"][algorithm]

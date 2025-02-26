@@ -62,7 +62,12 @@ def open_simulation(simulation_id: int) -> Tuple[UserQueue, int, int]:
 
 
 def user_quick_sort(users: List[User], low: int, high: int):
-    """Sorts a list of users according to their start time from highest to lowest"""
+    """
+    Sorts a list of users according to their start time from highest to lowest. Using quick sort.
+    :param users: list being sorted
+    :param low: the lowest value in part of list to look at
+    :param high: the highest value in part of list to look at
+    """
     if low < high:
         # find partition
         partition: int = user_quick_sort_partition(users, low, high)
@@ -72,6 +77,13 @@ def user_quick_sort(users: List[User], low: int, high: int):
 
 
 def user_quick_sort_partition(users: List[User], low: int, high: int) -> int:
+    """
+    Finds the pivot point using the first value in the list
+    :param users: list being sorted
+    :param low: the lowest value in part of list to look at
+    :param high: the highest value in part of list to look at
+    :return: pivot point
+    """
     pivot: User = users[high]
     i: int = low - 1
     for j in range(low, high):

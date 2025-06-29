@@ -14,8 +14,10 @@ def save_simulation(values: List[User], total_floors: int, lift_capacity: int):
     output = {"floors": total_floors, "lift capacity": lift_capacity}
     for value in values:
         output[value.id] = value.get_simulation_data()
+    # make sure destination folder exists
+    if not os.path.exists("simulations"):
+        os.makedirs("simulations")
     # write to file
-
     with open(f"simulations/simulation_{len(os.listdir("simulations"))}.json", "w") as f:
         f.write(json.dumps(output, indent=4))
 

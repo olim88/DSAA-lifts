@@ -6,7 +6,6 @@ import simulation_handler
 import statistics
 from lift_algorithms.LOOK import LookAlgorithm
 from lift_algorithms.lift import BaseLiftAlgorithm
-from lift_algorithms.MyLiftAlgorithm import MyLiftAlgorithm
 
 from lift_algorithms.SCAN import ScanAlgorithm
 
@@ -49,14 +48,12 @@ What do you want to do?:
             if chosen_id is None:
                 continue
             # ask for algorithm
-            chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN or MYLIFT)")
+            chosen_algorithm = input("Choose a simulation to run (LOOK or SCAN)")
 
             if chosen_algorithm == "LOOK" or chosen_algorithm == "1":
                 algorithm: BaseLiftAlgorithm = LookAlgorithm()
             elif chosen_algorithm == "SCAN" or chosen_algorithm == "2":
                 algorithm: BaseLiftAlgorithm = ScanAlgorithm()
-            elif chosen_algorithm == "MYLIFT" or chosen_algorithm == "3":
-                algorithm: BaseLiftAlgorithm = MyLiftAlgorithm()
             else:
                 print("Invalid algorithm")
                 continue
@@ -93,10 +90,6 @@ What do you want to do?:
                     print(e)
                 try:
                     statistics.show_statistics_of_algorithm(int(chosen_id), "LOOK")
-                except Exception as e:
-                    print(e)
-                try:
-                    statistics.show_statistics_of_algorithm(int(chosen_id), "MYLIFT")
                 except Exception as e:
                     print(e)
 
